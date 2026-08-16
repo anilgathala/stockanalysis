@@ -45,3 +45,75 @@ The total percentage price change over the last 63 trading days (~1 calendar qua
 The total percentage price change over the last 252 trading days (~1 calendar year). This is the core ranking metric used in cross-sectional momentum strategies to identify top market performers.
 * **3M Ann Vol (%) [3-Month Annualized Volatility]**
 The annualized standard deviation of daily percentage returns computed over the trailing 63 trading days (multiplied by $\sqrt{252}$). It quantifies the price fluctuation risk of the asset—higher values indicate wider price swings and higher expected risk/reward variance.
+
+
+The **Relative Strength Index (RSI)** is a momentum oscillator that measures the **speed** and **magnitude** of recent price movements to determine whether a stock is overbought, oversold, or trending strongly.
+
+Developed by J. Welles Wilder Jr. in 1978, it boils price movement down into a single number between **0 and 100**.
+
+---
+
+### 1. How RSI Is Calculated (The Core Intuition)
+
+Instead of looking at the absolute price, RSI looks at **up days versus down days** over a set time window—traditionally **14 periods** (usually 14 daily candles).
+
+1. **Calculate Average Gain & Average Loss:**
+* Sum up all price increases over the last 14 days and divide by 14.
+* Sum up all price decreases over the last 14 days and divide by 14.
+
+
+2. **Calculate Relative Strength (RS):**
+$$RS = \frac{\text{Average Gain over 14 days}}{\text{Average Loss over 14 days}}$$
+
+
+3. **Normalize to a 0–100 Scale:**
+$$RSI = 100 - \left( \frac{100}{1 + RS} \right)$$
+
+
+
+* **If a stock only went UP for 14 days:** Average Loss is 0 $\rightarrow RS = \infty \rightarrow \mathbf{RSI = 100}$.
+* **If a stock only went DOWN for 14 days:** Average Gain is 0 $\rightarrow RS = 0 \rightarrow \mathbf{RSI = 0}$.
+* **If gains equal losses:** $RS = 1 \rightarrow \mathbf{RSI = 50}$.
+
+---
+
+### 2. Traditional Interpretation: Overbought vs. Oversold
+
+| RSI Level | Market Condition | What It Means | Trader Interpretation |
+| --- | --- | --- | --- |
+| **$> 70$** | **Overbought** | Buyers have pushed the price up aggressively in a short period. | The stock may be overextended and due for a pullback or consolidation. |
+| **$40 - 60$** | **Neutral / Equilibrium** | Buying and selling pressure are balanced. | No extreme directional bias from momentum alone. |
+| **$< 30$** | **Oversold** | Sellers have driven the price down rapidly. | The stock may be undervalued or primed for a technical relief bounce. |
+
+---
+
+### 3. Advanced RSI Signals
+
+#### A. Divergence (Early Reversal Warning)
+
+Divergence occurs when the stock's price moves in the **opposite direction** of the RSI. It signals that momentum is slowing down even if the price is still reaching new extremes.
+
+* **Bearish Divergence:** The price makes a **higher high**, but RSI makes a **lower high**.
+* *Meaning:* Buyers are pushing prices up, but with less power. A reversal downward often follows.
+
+
+* **Bullish Divergence:** The price makes a **lower low**, but RSI makes a **higher low**.
+* *Meaning:* Sellers are driving prices down, but selling pressure is fading. A reversal upward often follows.
+
+
+
+#### B. RSI Range Shifts in Strong Trends
+
+In strong trending markets, traditional $70/30$ levels can produce false reversal signals:
+
+* **Strong Uptrends:** RSI often stays elevated between **$40$ and $80$**, treating $40–50$ as support rather than dipping down to $30$.
+* **Strong Downtrends:** RSI often stays depressed between **$20$ and $60$**, treating $50–60$ as resistance rather than reaching $70$.
+
+---
+
+### 4. Why the Script Uses `RSI < 70`
+
+In your screening strategy, the script filters for stocks where `RSI (14) < 70` while simultaneously requiring the price to be above the 50-SMA and 200-SMA.
+
+* **The Goal:** Catch strong stocks in an uptrend that are **not yet overheated**.
+* **Avoiding the Trap:** Buying a stock with an RSI $> 80$ often means buying right at the local peak before a minor pullback, even if the multi-year trend is intact. The filter enforces discipline by ensuring you buy during healthy momentum rather than peak excitement.
