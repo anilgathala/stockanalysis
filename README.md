@@ -1,3 +1,6 @@
+## Stock Picker (to buy) ["momentum_picks.py"]
+
+
 This script works in two main phases: **screening** (which stocks qualify) and **ranking** (how they are ordered).
 
 Here is the conceptual step-by-step breakdown of how the process operates:
@@ -117,3 +120,81 @@ In your screening strategy, the script filters for stocks where `RSI (14) < 70` 
 
 * **The Goal:** Catch strong stocks in an uptrend that are **not yet overheated**.
 * **Avoiding the Trap:** Buying a stock with an RSI $> 80$ often means buying right at the local peak before a minor pullback, even if the multi-year trend is intact. The filter enforces discipline by ensuring you buy during healthy momentum rather than peak excitement.
+
+## Exit Criteria (to sell) ["exit_criteria.py"]
+This Python script is an **Automated Technical Exit Analysis System**. It downloads historical stock price and volume data for any given ticker symbol, calculates five specific technical indicators, and checks if multiple "sell" or "take profit / cut loss" conditions have been triggered simultaneously.
+
+Instead of relying on a single indicator, it uses a **composite score** (0 to 5) to identify when short-term bullish momentum is failing.
+
+---
+
+### How the Script Works (Step-by-Step)
+
+1. **Data Download (`fetch_ticker_data`)**:
+It connects to Yahoo Finance (`yfinance`) and downloads 6 months of daily stock market data for the requested ticker (e.g., `AAPL`, `NVDA`, `SPY`). It cleans up the data to ensure it contains daily **Open**, **High**, **Low**, **Close**, and **Volume** values.
+2. **Indicator & Signal Calculation (`generate_exit_signals`)**:
+It feeds the daily price data into five technical analysis sections:
+* **Trend & Momentum (EMA & MACD):** Checks if the stock price drops below its 20-day trend line (20 EMA) or if the short-term momentum line crosses below the signal line (MACD Bearish Crossover).
+* **Overbought & Divergence (RSI):** Checks if the Relative Strength Index falls back below 70 (exiting overbought territory) or if the stock price made a new high while RSI failed to make a new high (Bearish Divergence).
+* **Volume Distribution (OBV):** Measures buying vs. selling pressure using On-Balance Volume and flags when volume flow falls below its 10-day moving average.
+* **Volatility Rejection (Bollinger Bands):** Checks if the price touched or exceeded the upper Bollinger Band in the prior session but failed to hold and closed lower.
+
+
+3. **Composite Scoring**:
+It tallies how many of the 5 exit conditions are currently `True`. If **2 or more** signals are active on the same day, `Take_Profit_Cut_Loss_Trigger` evaluates to `True`.
+4. **Console Output & Historical Log (`analyze_ticker`)**:
+It prints a summary of the latest trading day—including price, key indicator values, and active signal checkboxes—followed by a log showing any recent dates over the last 6 months where 2 or more exit signals were triggered.
+
+---
+
+### Output Metrics & Definitions (For `README.md`)
+
+You can copy and paste the section below directly into your project's `README.md` file:
+
+```markdown
+## Output Metrics & Signal Definitions
+
+### Core Price & Indicator Metrics
+
+* **Close Price**: The official closing price of the security on the most recent trading day.
+* **20-Day EMA (Exponential Moving Average)**: A trend line that places greater weight on recent price data. It acts as short-term dynamic support during uptrends.
+* **RSI (14) (Relative Strength Index)**: A momentum oscillator measured on a scale of 0 to 100 that evaluates whether an asset is overbought (>70) or oversold (<30).
+
+---
+
+### Individual Exit Signals (0 or 1 Each)
+
+* **Price < EMA 20 Break (`Signal_EMA20_Break`)**:
+  * *Trigger Condition:* The current closing price falls below the 20-day Exponential Moving Average.
+  * *Interpretation:* Indicates that the short-term upward trend has broken down.
+
+* **MACD Bearish Cross-Under (`Signal_MACD_Cross_Under`)**:
+  * *Trigger Condition:* The MACD line crosses from above to below the Signal line.
+  * *Interpretation:* Signals a shift from bullish to bearish momentum.
+
+* **RSI Overbought Exit (<70) (`Signal_RSI_Exit_Overbought`)**:
+  * *Trigger Condition:* RSI drops back below 70 after previously being at or above 70.
+  * *Interpretation:* Indicates buying frenzy has cooled down and buyers are starting to lock in profits.
+
+* **OBV Distribution (<10 EMA) (`Signal_OBV_Distribution`)**:
+  * *Trigger Condition:* On-Balance Volume (OBV) falls below its 10-period Exponential Moving Average.
+  * *Interpretation:* Suggests institutional volume is flowing out of the stock (selling pressure exceeds buying volume).
+
+* **BB Upper Band Rejection (`Signal_BB_Rejection`)**:
+  * *Trigger Condition:* The previous session's high price touched or breached the Upper Bollinger Band, but the current closing price dropped back inside the band.
+  * *Interpretation:* Indicates a failed breakout at the upper volatility boundary, signaling upside rejection.
+
+---
+
+### Composite Decision Metrics
+
+* **Total Exit Signals Active (`Exit_Signal_Count`)**:
+  * *Range:* `0` to `5`
+  * *Interpretation:* The sum of all active exit signals on a given day. A higher score represents stronger technical confluence for exiting the position.
+
+* **Action Required (`Take_Profit_Cut_Loss_Trigger`)**:
+  * *Values:* `True` | `False`
+  * *Threshold:* Evaluates to `True` whenever `Exit_Signal_Count >= 2`.
+  * *Interpretation:* Confluence trigger recommending an exit strategy (taking profit or cutting losses) to preserve capital.
+
+```
